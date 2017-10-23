@@ -2,6 +2,7 @@ import wx
 import wx.dataview
 
 
+# 党员列表的标签页
 class Panel_info(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(600, 600),
@@ -9,6 +10,7 @@ class Panel_info(wx.Panel):
 
         bSizer3 = wx.BoxSizer(wx.VERTICAL)
 
+        # 支部选择boxchoices
         radioBoxChoices = [u"所有党员", u"一支部", u"二支部", u"三支部", u"四支部"]
         self.radioBox = wx.RadioBox(self, wx.ID_ANY, u"支部选择", wx.DefaultPosition, wx.DefaultSize, radioBoxChoices, 6,
                                     wx.RA_SPECIFY_COLS)
@@ -17,16 +19,19 @@ class Panel_info(wx.Panel):
 
         bSizer4 = wx.BoxSizer(wx.HORIZONTAL)
 
+        # 搜索框
         self.m_searchCtrl1 = wx.SearchCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_searchCtrl1.ShowSearchButton(True)
         self.m_searchCtrl1.ShowCancelButton(False)
         bSizer4.Add(self.m_searchCtrl1, 3, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
+        # 刷新Button
         self.btn_reflash = wx.Button(self, wx.ID_ANY, u"刷  新", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer4.Add(self.btn_reflash, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         bSizer3.Add(bSizer4, 0, wx.EXPAND, 5)
 
+        # 显示列表
         self.dvList = wx.dataview.DataViewListCtrl(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
                                                    wx.dataview.DV_HORIZ_RULES | wx.dataview.DV_VERT_RULES)
         self.dvListCol_id = self.dvList.AppendTextColumn(u"序号", width=40, align=wx.ALIGN_CENTER)
@@ -51,10 +56,12 @@ class Panel_info(wx.Panel):
 
         bSizer3.Add(self.dvList, 3, wx.ALL | wx.EXPAND, 5)
 
+        # 绑定显示列表的右击菜单事件
         self.Bind(wx.dataview.EVT_DATAVIEW_ITEM_CONTEXT_MENU, self.itemMenu)
         self.SetSizer(bSizer3)
         self.Layout()
 
+        # 右击菜单
         self.i_menu = wx.Menu()
         self.i_menu_item1 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"MyMenuItem", wx.EmptyString, wx.ITEM_NORMAL)
         self.i_menu_item2 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"MyMenuItem", wx.EmptyString, wx.ITEM_NORMAL)
@@ -70,6 +77,7 @@ class Panel_info(wx.Panel):
         print(self.dvList.GetItemData(event.GetItem()))
 
 
+# 个人信息维护标签页
 class Panel_person_info(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(1000, 700),
@@ -79,15 +87,19 @@ class Panel_person_info(wx.Panel):
 
         bSizer2 = wx.BoxSizer(wx.HORIZONTAL)
 
+        # 维护button
         self.btn_p_modify = wx.Button(self, wx.ID_ANY, u"修改", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer2.Add(self.btn_p_modify, 0, wx.ALL, 3)
 
+        # 保存button
         self.btn_p_save = wx.Button(self, wx.ID_ANY, u"保存", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer2.Add(self.btn_p_save, 0, wx.TOP | wx.BOTTOM | wx.RIGHT, 3)
 
+        # 转出button
         self.btn_p_out = wx.Button(self, wx.ID_ANY, u"转出", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer2.Add(self.btn_p_out, 0, wx.TOP | wx.BOTTOM | wx.RIGHT, 3)
 
+        # 转入button
         self.btn_p_in = wx.Button(self, wx.ID_ANY, u"转入", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer2.Add(self.btn_p_in, 0, wx.TOP | wx.BOTTOM | wx.RIGHT, 3)
 
@@ -109,6 +121,7 @@ class Panel_person_info(wx.Panel):
         gbSizer1.Add(self.m_staticText2, wx.GBPosition(1, 0), wx.GBSpan(1, 1),
                      wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
 
+        # 姓名
         self.tC_name = wx.TextCtrl(self, wx.ID_ANY, u"张三三三", wx.DefaultPosition, wx.Size(-1, -1), 0)
         gbSizer1.Add(self.tC_name, wx.GBPosition(1, 1), wx.GBSpan(1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
@@ -117,6 +130,7 @@ class Panel_person_info(wx.Panel):
         gbSizer1.Add(self.m_staticText3, wx.GBPosition(1, 2), wx.GBSpan(1, 1),
                      wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
 
+        # 姓别
         c_sexChoices = [u"男", u"女"]
         self.c_sex = wx.Choice(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, c_sexChoices, 0)
         self.c_sex.SetSelection(0)
@@ -127,6 +141,7 @@ class Panel_person_info(wx.Panel):
         gbSizer1.Add(self.m_staticText4, wx.GBPosition(1, 4), wx.GBSpan(1, 1),
                      wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
 
+        # 民族
         self.tc_mz = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(-1, -1), 0)
         gbSizer1.Add(self.tc_mz, wx.GBPosition(1, 5), wx.GBSpan(1, 1), wx.ALL | wx.EXPAND, 5)
 
@@ -135,6 +150,7 @@ class Panel_person_info(wx.Panel):
         gbSizer1.Add(self.m_staticText5, wx.GBPosition(1, 6), wx.GBSpan(1, 1),
                      wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
 
+        # 学历
         self.tc_study = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(100, -1), 0)
         gbSizer1.Add(self.tc_study, wx.GBPosition(1, 7), wx.GBSpan(1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
@@ -142,6 +158,7 @@ class Panel_person_info(wx.Panel):
         self.m_staticText6.Wrap(-1)
         gbSizer1.Add(self.m_staticText6, wx.GBPosition(2, 0), wx.GBSpan(1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
+        # 身份证号
         self.tc_pid = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         gbSizer1.Add(self.tc_pid, wx.GBPosition(2, 1), wx.GBSpan(1, 3), wx.ALL | wx.EXPAND, 5)
 
@@ -149,6 +166,7 @@ class Panel_person_info(wx.Panel):
         self.m_staticText7.Wrap(-1)
         gbSizer1.Add(self.m_staticText7, wx.GBPosition(2, 4), wx.GBSpan(1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
+        # 人员类别
         self.tc_type = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         gbSizer1.Add(self.tc_type, wx.GBPosition(2, 5), wx.GBSpan(1, 1), wx.ALL | wx.EXPAND, 5)
 
@@ -156,6 +174,7 @@ class Panel_person_info(wx.Panel):
         self.m_staticText8.Wrap(-1)
         gbSizer1.Add(self.m_staticText8, wx.GBPosition(3, 0), wx.GBSpan(1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
+        # 党员编号
         self.tc_dybh = wx.TextCtrl(self, wx.ID_ANY, u"042300000", wx.DefaultPosition, wx.DefaultSize, 0)
         gbSizer1.Add(self.tc_dybh, wx.GBPosition(3, 1), wx.GBSpan(1, 1), wx.ALL, 5)
 
@@ -168,6 +187,7 @@ class Panel_person_info(wx.Panel):
         self.m_staticText15.Wrap(-1)
         gbSizer1.Add(self.m_staticText15, wx.GBPosition(5, 0), wx.GBSpan(1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
+        # 家庭住址
         self.tc_jtzz = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         gbSizer1.Add(self.tc_jtzz, wx.GBPosition(5, 1), wx.GBSpan(1, 5), wx.ALL | wx.EXPAND, 5)
 
@@ -254,11 +274,11 @@ class Panel_person_info(wx.Panel):
 
         self.m_listCtrl1 = wx.ListCtrl(self, wx.ID_ANY, wx.DefaultPosition, wx.Size(800, 180),
                                        wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
-        self.m_listCtrl1.AppendColumn("序号",wx.LIST_FORMAT_CENTER,50)
-        self.m_listCtrl1.AppendColumn("时间",wx.LIST_FORMAT_CENTER, width=120)
-        self.m_listCtrl1.AppendColumn("转入/转出",wx.LIST_FORMAT_CENTER, width=80)
-        self.m_listCtrl1.AppendColumn("转入地/转出地",wx.LIST_FORMAT_CENTER,width=300)
-        self.m_listCtrl1.AppendColumn("备注", wx.LIST_FORMAT_CENTER,width=250)
+        self.m_listCtrl1.AppendColumn("序号", wx.LIST_FORMAT_CENTER, 50)
+        self.m_listCtrl1.AppendColumn("时间", wx.LIST_FORMAT_CENTER, width=120)
+        self.m_listCtrl1.AppendColumn("转入/转出", wx.LIST_FORMAT_CENTER, width=80)
+        self.m_listCtrl1.AppendColumn("转入地/转出地", wx.LIST_FORMAT_CENTER, width=300)
+        self.m_listCtrl1.AppendColumn("备注", wx.LIST_FORMAT_CENTER, width=250)
         gbSizer1.Add(self.m_listCtrl1, wx.GBPosition(15, 0), wx.GBSpan(1, 8), wx.ALIGN_CENTER | wx.ALL, 5)
 
         self.m_staticText27 = wx.StaticText(self, wx.ID_ANY, u"党员关系转接", wx.DefaultPosition, wx.DefaultSize,
@@ -315,3 +335,19 @@ class Panel_person_info(wx.Panel):
 
     def __del__(self):
         pass
+
+
+class Panel_df(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(1000, 700),
+                          style=wx.TAB_TRAVERSAL)
+
+        wx.StaticText(self,label='党费收缴页面')
+
+
+class Panel_print(wx.Panel):
+    def __init__(self,parent):
+        wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(1000, 700),
+                          style=wx.TAB_TRAVERSAL)
+
+        wx.StaticText(self,label='信息导出页面')
