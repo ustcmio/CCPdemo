@@ -1,6 +1,7 @@
 import wx
 import wx.aui
 import ui.panels
+import ui.dialogs
 
 class Screen(wx.Frame):
     def __init__(self, parent):
@@ -16,10 +17,10 @@ class Screen(wx.Frame):
 
         leftSizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.btn_info = wx.Button(self.left_panel, wx.ID_ANY, u"党员信息", wx.DefaultPosition, (150,30), 0)
+        self.btn_info = wx.Button(self.left_panel, wx.ID_ANY, u"党员列表", wx.DefaultPosition, (150,30), 0)
         leftSizer.Add(self.btn_info, 0, wx.EXPAND | wx.TOP | wx.RIGHT | wx.LEFT, 5)
 
-        self.btn_io = wx.Button(self.left_panel, wx.ID_ANY, u"转入转出", wx.DefaultPosition, (150,30), 0)
+        self.btn_io = wx.Button(self.left_panel, wx.ID_ANY, u"信息维护", wx.DefaultPosition, (150,30), 0)
         leftSizer.Add(self.btn_io, 0, wx.EXPAND | wx.TOP | wx.RIGHT | wx.LEFT, 5)
 
         self.btn_df = wx.Button(self.left_panel, wx.ID_ANY, u"党费收缴", wx.DefaultPosition, (150,30), 0)
@@ -39,10 +40,10 @@ class Screen(wx.Frame):
         hSizer.Add(self.m_auinotebook1, 3, wx.EXPAND | wx.ALL, 0)
 
         self.p_info = ui.panels.Panel_info(self.m_auinotebook1)
-        self.m_auinotebook1.AddPage(self.p_info,'党员情况',False,wx.NullBitmap)
+        self.m_auinotebook1.AddPage(self.p_info,'党员列表',False,wx.NullBitmap)
 
         self.p_person_info = ui.panels.Panel_person_info(self.m_auinotebook1)
-        self.m_auinotebook1.AddPage(self.p_person_info, '个人基本信息', False, wx.NullBitmap)
+        self.m_auinotebook1.AddPage(self.p_person_info, '信息维护', False, wx.NullBitmap)
 
 
         self.SetSizer(hSizer)
@@ -60,6 +61,8 @@ class MyApp(wx.App):
         s.CenterOnScreen()
         self.SetTopWindow(s)
         s.Show()
+        d = ui.dialogs.Dialog_in(s)
+        d.Show()
         return True
 
 
