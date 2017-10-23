@@ -44,8 +44,8 @@ class Screen(wx.Frame):
 
         hSizer.Add(self.m_auinotebook, 3, wx.EXPAND | wx.ALL, 0)
 
-        self.p_info = ui.panels.Panel_info(self.m_auinotebook)
-        self.m_auinotebook.AddPage(self.p_info,'党员列表',True,wx.NullBitmap)
+        self.p = ui.panels.Panel_info(self.m_auinotebook)
+        self.m_auinotebook.AddPage(self.p,'党员列表',True,wx.NullBitmap)
 
         self.SetSizer(hSizer)
         self.Layout()
@@ -62,7 +62,7 @@ class Screen(wx.Frame):
         index = self.getPageIndex(btn.GetLabel())
         current = self.m_auinotebook.GetSelection()
 
-        # print(index , current)
+        print(index , current)
         if index == current:
             return
         if index is not None:
