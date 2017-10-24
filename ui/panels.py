@@ -56,30 +56,32 @@ class Panel_info(wx.Panel):
 
         # 右击菜单
         self.i_menu = wx.Menu()
-        self.i_menu_item1 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"MyMenuItem", wx.EmptyString, wx.ITEM_NORMAL)
-        self.i_menu_item2 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"MyMenuItem", wx.EmptyString, wx.ITEM_NORMAL)
+        self.i_menu_item1 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"详情", wx.EmptyString, wx.ITEM_NORMAL)
+        self.i_menu_item2 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"信息维护", wx.EmptyString, wx.ITEM_NORMAL)
+        self.i_menu_item3 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"关系转出", wx.EmptyString, wx.ITEM_NORMAL)
+
         self.i_menu.Append(self.i_menu_item1)
         self.i_menu.Append(self.i_menu_item2)
-
-        dataList = [
-            [1, '0420302338', '一支部', '正式', '张张三', '男', '11111111111111111X', '锡山区东亭街道柏庄社区柏木南苑12-1201', '88708888',
-             '13088888888',
-             '201706', '党小组长']]
-        self.showList(dataList)
+        self.i_menu.Append(self.i_menu_item3)
 
     def __del__(self):
         pass
 
     def itemMenu(self, event):
         self.PopupMenu(self.i_menu, event.GetPosition())
-        print(self.dvList.ItemToRow(event.GetItem()))
-        print(self.dvList.GetItemData(event.GetItem()))
+        # print(self.dvList.ItemToRow(event.GetItem()))
+        # print(self.dvList.GetItemData(event.GetItem()))
+        print(self.i_menu_item1.GetId())
+        print(self.i_menu_item2.GetId())
+        print(self.i_menu_item3.GetId())
 
-    def showList(self, dataList):
-        for index in range(len(dataList)):
-            self.dvList.AppendItem(dataList[index], uuid.uuid1())
 
-
+    def showData(self, data):
+        if data:
+            for index in range(len(data)):
+                info = data[index].getInfo()
+                info.insert(0,index)
+                self.dvList.AppendItem(info, int(data[index].dybh))
 
 
 # 个人信息维护标签页
@@ -341,12 +343,16 @@ class Panel_person_info(wx.Panel):
     def __del__(self):
         pass
 
+    def showData(self,data):
+        print(self.GetParent().GetParent().orgni)
+
 
 class Panel_df(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(1000, 700),
                           style=wx.TAB_TRAVERSAL)
 
+    def showData(self,data):
         wx.StaticText(self, label='党费收缴页面')
 
 
@@ -355,4 +361,5 @@ class Panel_print(wx.Panel):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(1000, 700),
                           style=wx.TAB_TRAVERSAL)
 
+    def showData(self, data):
         wx.StaticText(self, label='信息导出页面')

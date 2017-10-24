@@ -2,6 +2,8 @@ import wx
 import wx.aui
 import ui.panels
 import ui.dialogs
+import enty.member
+import wx.dataview
 
 class Screen(wx.Frame):
     def __init__(self, parent):
@@ -44,8 +46,18 @@ class Screen(wx.Frame):
 
         hSizer.Add(self.m_auinotebook, 3, wx.EXPAND | wx.ALL, 0)
 
-        self.p = ui.panels.Panel_info(self.m_auinotebook)
-        self.m_auinotebook.AddPage(self.p,'党员列表',True,wx.NullBitmap)
+        # self.panels = {
+        #     '党员列表': ui.panels.Panel_info(self.m_auinotebook),
+        #     '信息维护': ui.panels.Panel_person_info(self.m_auinotebook),
+        #     '党费收缴': ui.panels.Panel_df(self.m_auinotebook),
+        #     '信息导出': ui.panels.Panel_print(self.m_auinotebook)
+        # }
+
+        # for label,panel in self.panels.items():
+        #     panel.Hide()
+
+        self.currentPanel = ui.panels.Panel_info(self.m_auinotebook)
+        self.m_auinotebook.AddPage(self.currentPanel,self.btn_info.GetLabel(),True,wx.NullBitmap)
 
         self.SetSizer(hSizer)
         self.Layout()
@@ -54,29 +66,26 @@ class Screen(wx.Frame):
 
         self.Bind(wx.EVT_BUTTON, self.onClick)
 
+        self.initData()
+
+        self.Bind(wx.EVT_MENU, self.menu)
+
+    def initData(self):
+        self.orgni = [enty.member.Member('张三','111111111111111111','0402302338'),enty.member.Member('李四','111111111111111111','0402302339')]
+        self.currentPanel.showData(self.orgni)
+
     def __del__(self):
         pass
 
+    def menu(self,event):
+        print(event.GetId())
+
     def onClick(self, event):
         btn = event.GetEventObject()
-        index = self.getPageIndex(btn.GetLabel())
-        current = self.m_auinotebook.GetSelection()
-
-        print(index , current)
-        if index == current:
-            return
-        if index is not None:
-            self.m_auinotebook.SetSelection(index)
+        if btn is self.btn_info:
+            self.showPageWithData(btn.GetLabel(),self.orgni)
         else:
-            if btn is self.btn_info:
-                self.p = ui.panels.Panel_info(self.m_auinotebook)
-            if btn is self.btn_io:
-                self.p = ui.panels.Panel_person_info(self.m_auinotebook)
-            if btn is self.btn_df:
-                self.p = ui.panels.Panel_df(self.m_auinotebook)
-            if btn is self.btn_print:
-                self.p = ui.panels.Panel_print(self.m_auinotebook)
-            self.m_auinotebook.AddPage(self.p, btn.GetLabel(), True, wx.NullBitmap)
+            self.showPageWithData(btn.GetLabel())
 
 
     def getPageIndex(self, label):
@@ -85,6 +94,29 @@ class Screen(wx.Frame):
             if self.m_auinotebook.GetPageText(index) == label:
                 return index
         return None
+
+    def showPageWithData(self,label,data=None):
+
+        current = self.m_auinotebook.GetSelection()
+        index = self.getPageIndex(label)
+
+        print(index,current)
+        if index is None:
+            if label == '党员列表':
+                self.currentPanel = ui.panels.Panel_info(self.m_auinotebook)
+            elif label == '信息维护':
+                self.currentPanel = ui.panels.Panel_person_info(self.m_auinotebook)
+            elif label == '党费收缴':
+                self.currentPanel = ui.panels.Panel_df(self.m_auinotebook)
+            else:
+                self.currentPanel = ui.panels.Panel_print(self.m_auinotebook)
+            self.m_auinotebook.AddPage(self.currentPanel,label,True,wx.NullBitmap)
+        else:
+            if index is not current:
+                self.m_auinotebook.SetSelection(index)
+            self.currentPanel = self.m_auinotebook.GetPage(index)
+        self.currentPanel.showData(data)
+
 
 class MyApp(wx.App):
     def OnInit(self):
