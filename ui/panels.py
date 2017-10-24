@@ -1,6 +1,6 @@
 import wx
 import wx.dataview
-
+import uuid
 
 # 党员列表的标签页
 class Panel_info(wx.Panel):
@@ -35,24 +35,17 @@ class Panel_info(wx.Panel):
         self.dvList = wx.dataview.DataViewListCtrl(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
                                                    wx.dataview.DV_HORIZ_RULES | wx.dataview.DV_VERT_RULES)
         self.dvListCol_id = self.dvList.AppendTextColumn(u"序号", width=40, align=wx.ALIGN_CENTER)
+        self.dvListCol_dybh = self.dvList.AppendTextColumn(u'党员编号', width=95, align=wx.ALIGN_CENTER)
         self.dvListCol_party = self.dvList.AppendTextColumn(u"所在支部", width=60, align=wx.ALIGN_CENTER)
         self.dvListCol_isprob = self.dvList.AppendTextColumn(u"预备/正式", width=70, align=wx.ALIGN_CENTER)
         self.dvListCol_name = self.dvList.AppendTextColumn(u"姓  名", width=50, align=wx.ALIGN_CENTER)
         self.dvListCol_sex = self.dvList.AppendTextColumn(u"性别", width=40, align=wx.ALIGN_CENTER)
         self.dvListCol_pid = self.dvList.AppendTextColumn(u"身份证号", width=150, align=wx.ALIGN_CENTER)
         self.dvListCol_addr = self.dvList.AppendTextColumn(u"住址", width=250, align=wx.ALIGN_CENTER)
-        self.dvListCol_phone = self.dvList.AppendTextColumn(u"座机", width=100, align=wx.ALIGN_CENTER)
+        self.dvListCol_phone = self.dvList.AppendTextColumn(u"座机", width=80, align=wx.ALIGN_CENTER)
         self.dvListCol_tel = self.dvList.AppendTextColumn(u"手机", width=100, align=wx.ALIGN_CENTER)
-        self.dvListCol_dfjz = self.dvList.AppendTextColumn(u"党费交至", width=80, align=wx.ALIGN_CENTER)
-        self.dvListCol_other = self.dvList.AppendTextColumn(u"备注", width=140, align=wx.ALIGN_CENTER)
-        # self.dvListCol_date1 = self.dvList.AppendTextColumn(u"入党年月")
-        # self.dvListCol_date2 = self.dvList.AppendTextColumn(u"转正时间")
-        # self.dvListCol_date_in = self.dvList.AppendTextColumn(u"转入时间")
-        # self.dvListCol_from = self.dvList.AppendTextColumn(u"转入地")
-
-        self.dvList.AppendItem(
-            [1, '一支部', '正式', '张张三', '男', '11111111111111111X', '锡山区东亭街道柏庄社区柏木南苑12-1201', '88708888', '13088888888',
-             '201706', '党小组长'], data=11111111)
+        self.dvListCol_dfjz = self.dvList.AppendTextColumn(u"党费交至", width=70, align=wx.ALIGN_CENTER)
+        self.dvListCol_other = self.dvList.AppendTextColumn(u"备注", width=80, align=wx.ALIGN_CENTER)
 
         bSizer3.Add(self.dvList, 3, wx.ALL | wx.EXPAND, 5)
 
@@ -68,6 +61,12 @@ class Panel_info(wx.Panel):
         self.i_menu.Append(self.i_menu_item1)
         self.i_menu.Append(self.i_menu_item2)
 
+        dataList = [
+            [1, '0420302338', '一支部', '正式', '张张三', '男', '11111111111111111X', '锡山区东亭街道柏庄社区柏木南苑12-1201', '88708888',
+             '13088888888',
+             '201706', '党小组长']]
+        self.showList(dataList)
+
     def __del__(self):
         pass
 
@@ -75,6 +74,12 @@ class Panel_info(wx.Panel):
         self.PopupMenu(self.i_menu, event.GetPosition())
         print(self.dvList.ItemToRow(event.GetItem()))
         print(self.dvList.GetItemData(event.GetItem()))
+
+    def showList(self, dataList):
+        for index in range(len(dataList)):
+            self.dvList.AppendItem(dataList[index], uuid.uuid1())
+
+
 
 
 # 个人信息维护标签页
@@ -342,12 +347,12 @@ class Panel_df(wx.Panel):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(1000, 700),
                           style=wx.TAB_TRAVERSAL)
 
-        wx.StaticText(self,label='党费收缴页面')
+        wx.StaticText(self, label='党费收缴页面')
 
 
 class Panel_print(wx.Panel):
-    def __init__(self,parent):
+    def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(1000, 700),
                           style=wx.TAB_TRAVERSAL)
 
-        wx.StaticText(self,label='信息导出页面')
+        wx.StaticText(self, label='信息导出页面')
