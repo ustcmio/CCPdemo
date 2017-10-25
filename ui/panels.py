@@ -2,17 +2,36 @@ import wx
 import wx.dataview
 import uuid
 
+
 # 党员列表的标签页
 class Panel_info(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(600, 600),
                           style=wx.TAB_TRAVERSAL)
+        self.top = self.GetTopLevelParent()
+        self.c = self.top.controller
+        self.layout()
 
+        # 绑定显示列表的右击菜单事件
+        self.Bind(wx.dataview.EVT_DATAVIEW_ITEM_CONTEXT_MENU, self.itemMenu)
+
+        # 绑定支部选择的radioBox
+        self.Bind(wx.EVT_RADIOBOX, self.radioBoxChoice, self.radioBox)
+
+        # 绑定搜索事件
+        self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.searchBtn, self.m_searchCtrl1)
+
+        # 绑定右击菜单点击事件
+        self.Bind(wx.EVT_MENU, self.menuItemOnclick)
+
+    def layout(self):
         bSizer3 = wx.BoxSizer(wx.VERTICAL)
 
         # 支部选择boxchoices
-        radioBoxChoices = [u"所有党员", u"一支部", u"二支部", u"三支部", u"四支部"]
-        self.radioBox = wx.RadioBox(self, wx.ID_ANY, u"支部选择", wx.DefaultPosition, wx.DefaultSize, radioBoxChoices, 6,
+        radioBoxChoices = [u"所有党员"]
+        radioBoxChoices.extend(sorted(self.c.dataAll.keys()))
+        radioBoxChoices.extend([u'近期转入', u'近期转出'])
+        self.radioBox = wx.RadioBox(self, wx.ID_ANY, u"支部选择", wx.DefaultPosition, wx.DefaultSize, radioBoxChoices, 7,
                                     wx.RA_SPECIFY_COLS)
         self.radioBox.SetSelection(0)
         bSizer3.Add(self.radioBox, 0, wx.ALL | wx.EXPAND, 5)
@@ -22,8 +41,9 @@ class Panel_info(wx.Panel):
         # 搜索框
         self.m_searchCtrl1 = wx.SearchCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_searchCtrl1.ShowSearchButton(True)
-        self.m_searchCtrl1.ShowCancelButton(False)
+        self.m_searchCtrl1.ShowCancelButton(True)
         bSizer4.Add(self.m_searchCtrl1, 3, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.m_searchCtrl1.SetDescriptiveText(u'输入姓名或身份证号')
 
         # 刷新Button
         self.btn_reflash = wx.Button(self, wx.ID_ANY, u"刷  新", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -49,8 +69,6 @@ class Panel_info(wx.Panel):
 
         bSizer3.Add(self.dvList, 3, wx.ALL | wx.EXPAND, 5)
 
-        # 绑定显示列表的右击菜单事件
-        self.Bind(wx.dataview.EVT_DATAVIEW_ITEM_CONTEXT_MENU, self.itemMenu)
         self.SetSizer(bSizer3)
         self.Layout()
 
@@ -68,20 +86,46 @@ class Panel_info(wx.Panel):
         pass
 
     def itemMenu(self, event):
+        item = event.GetItem()
+        if item:
+            key = self.dvList.GetItemData(event.GetItem())
+            self.i_menu.SetTitle(str(key))
         self.PopupMenu(self.i_menu, event.GetPosition())
-        # print(self.dvList.ItemToRow(event.GetItem()))
-        # print(self.dvList.GetItemData(event.GetItem()))
-        print(self.i_menu_item1.GetId())
-        print(self.i_menu_item2.GetId())
-        print(self.i_menu_item3.GetId())
-
 
     def showData(self, data):
+        self.dvList.DeleteAllItems()
         if data:
             for index in range(len(data)):
                 info = data[index].getInfo()
-                info.insert(0,index)
+                info.insert(0, index + 1)
                 self.dvList.AppendItem(info, int(data[index].dybh))
+
+    def radioBoxChoice(self, event):
+        box = event.GetEventObject()
+        label = box.GetString(box.GetSelection())
+        print(label)
+        if label == u'所有党员':
+            self.showData(self.c.getAllData())
+        elif label == u'近期转入':
+            self.showData(self.c.dataIn)
+        elif label == u'近期转出':
+            self.showData(self.c.dataOut)
+        else:
+            self.showData(self.c.getData(label))
+
+    def searchBtn(self, event):
+        key = event.GetString()
+        data = self.c.search(key)
+        self.showData(data)
+
+    def menuItemOnclick(self, event):
+        id = event.GetId()
+        menu = event.GetEventObject()
+        # print(id, menu.GetTitle())
+        member = self.c.getMemberByDYBH(menu.GetTitle())
+        # print(member)
+        if id == self.i_menu_item1.GetId():
+            self.top.showPageWithData('信息维护', member)
 
 
 # 个人信息维护标签页
@@ -343,8 +387,11 @@ class Panel_person_info(wx.Panel):
     def __del__(self):
         pass
 
-    def showData(self,data):
-        print(self.GetParent().GetParent().orgni)
+    def showData(self, data):
+        if data:
+            self.tC_name.SetValue(data.name)
+            self.tc_pid.SetValue(data.sfzh)
+            self.tc_dybh.SetValue(data.dybh)
 
 
 class Panel_df(wx.Panel):
@@ -352,7 +399,7 @@ class Panel_df(wx.Panel):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(1000, 700),
                           style=wx.TAB_TRAVERSAL)
 
-    def showData(self,data):
+    def showData(self, data):
         wx.StaticText(self, label='党费收缴页面')
 
 
