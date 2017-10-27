@@ -1,6 +1,5 @@
 import wx
 import wx.dataview
-import uuid
 
 
 # 党员列表的标签页
@@ -133,6 +132,8 @@ class Panel_person_info(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(1000, 700),
                           style=wx.TAB_TRAVERSAL)
+
+        self.Hide()
 
         bSizer1 = wx.BoxSizer(wx.VERTICAL)
 
@@ -384,6 +385,8 @@ class Panel_person_info(wx.Panel):
         self.SetSizer(bSizer1)
         self.Layout()
 
+        self.Show()
+
     def __del__(self):
         pass
 
@@ -398,15 +401,16 @@ class Panel_df(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(1000, 700),
                           style=wx.TAB_TRAVERSAL)
-
-    def showData(self, data):
         wx.StaticText(self, label='党费收缴页面')
 
+    def showData(self, data):
+        pass
 
 class Panel_print(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(1000, 700),
                           style=wx.TAB_TRAVERSAL)
+        wx.StaticText(self, label='信息导出页面')
 
     def showData(self, data):
-        wx.StaticText(self, label='信息导出页面')
+        pass

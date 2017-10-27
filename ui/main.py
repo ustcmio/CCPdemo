@@ -6,6 +6,7 @@ import enty.member
 import wx.dataview
 from controler import Controller
 
+
 class Screen(wx.Frame):
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=u"党员管理系统", pos=wx.DefaultPosition, size=wx.Size(1280, 800),
@@ -19,71 +20,51 @@ class Screen(wx.Frame):
         # 数据初始化
         self.initData()
 
-        # 事件绑定
-        self.Bind(wx.EVT_BUTTON, self.onClick)
-        # self.Bind(wx.EVT_MENU, self.menu)
+        # 树形菜单事件绑定
+        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onItemSelect)
+
 
     def layout(self):
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
 
         hSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.left_panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.left_panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INACTIVECAPTION))
+        self.nodetree1 = wx.TreeCtrl(self,id=wx.ID_ANY, pos=wx.DefaultPosition, size=(160,-1),
+         style=wx.TR_DEFAULT_STYLE| wx.TR_HIDE_ROOT | wx.TR_NO_LINES | wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_NO_BUTTONS, validator=wx.DefaultValidator,name=wx.TreeCtrlNameStr)
 
-        leftSizer = wx.BoxSizer(wx.VERTICAL)
+        node_root = self.nodetree1.AddRoot(u'根目录件')
+        node_modi = self.nodetree1.AppendItem(node_root,u'党员信息')
+        self.nodetree1.AppendItem(node_modi,u'信息维护')
+        self.nodetree1.AppendItem(node_modi, u'转入转出')
+        node_df = self.nodetree1.AppendItem(node_root, u'党费收缴')
+        node_data= self.nodetree1.AppendItem(node_root, u'数据文件')
+        self.nodetree1.AppendItem(node_data, u'数据备份')
+        self.nodetree1.AppendItem(node_data, u'导入XLS')
+        self.nodetree1.AppendItem(node_data, u'导出XLS')
 
-        # 党员列表button
-        self.btn_info = wx.Button(self.left_panel, wx.ID_ANY, u"党员列表", wx.DefaultPosition, (150, 30), 0)
-        leftSizer.Add(self.btn_info, 0, wx.EXPAND | wx.TOP | wx.RIGHT | wx.LEFT, 5)
-
-        # 信息维护button
-        self.btn_io = wx.Button(self.left_panel, wx.ID_ANY, u"信息维护", wx.DefaultPosition, (150, 30), 0)
-        leftSizer.Add(self.btn_io, 0, wx.EXPAND | wx.TOP | wx.RIGHT | wx.LEFT, 5)
-
-        # 党费收缴button
-        self.btn_df = wx.Button(self.left_panel, wx.ID_ANY, u"党费收缴", wx.DefaultPosition, (150, 30), 0)
-        leftSizer.Add(self.btn_df, 0, wx.TOP | wx.RIGHT | wx.LEFT | wx.EXPAND, 5)
-
-        # 信息导出button
-        self.btn_print = wx.Button(self.left_panel, wx.ID_ANY, u"信息导出", wx.DefaultPosition, (150, 30), 0)
-        leftSizer.Add(self.btn_print, 0, wx.TOP | wx.RIGHT | wx.LEFT | wx.EXPAND, 5)
-
-        self.left_panel.SetSizer(leftSizer)
-        self.left_panel.Layout()
-        leftSizer.Fit(self.left_panel)
-        hSizer.Add(self.left_panel, 0, wx.EXPAND | wx.ALL, 0)
+        hSizer.Add(self.nodetree1, 0, wx.EXPAND | wx.ALL, 0)
 
         # 多标签页
         self.m_auinotebook = wx.aui.AuiNotebook(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
                                                 wx.aui.AUI_NB_DEFAULT_STYLE)
+        self.currentPanel = ui.panels.Panel_info(self.m_auinotebook)
+        self.m_auinotebook.AddPage(self.currentPanel, "党员信息", True, wx.NullBitmap)
 
         hSizer.Add(self.m_auinotebook, 3, wx.EXPAND | wx.ALL, 0)
-
-        self.currentPanel = ui.panels.Panel_info(self.m_auinotebook)
-        self.m_auinotebook.AddPage(self.currentPanel, self.btn_info.GetLabel(), True, wx.NullBitmap)
 
         self.SetSizer(hSizer)
         self.Layout()
 
         self.Centre(wx.BOTH)
 
-    # def loadData(self, c):
-    #     self.controller = c
-    #     self.currentPanel.showData(c.getAllData())
 
     def initData(self):
+        print(self.controller.getAllData())
         self.currentPanel.showData(self.controller.getAllData())
 
     def __del__(self):
         pass
 
-    def onClick(self, event):
-        btn = event.GetEventObject()
-        if btn is self.btn_info:
-            self.showPageWithData(btn.GetLabel(),self.controller.getAllData())
-        else:
-            self.showPageWithData(btn.GetLabel())
 
     def getPageIndex(self, label):
         count = self.m_auinotebook.GetPageCount()
@@ -99,20 +80,30 @@ class Screen(wx.Frame):
 
         print(index, current)
         if index is None:
-            if label == '党员列表':
+            if label == '党员信息':
                 self.currentPanel = ui.panels.Panel_info(self.m_auinotebook)
             elif label == '信息维护':
                 self.currentPanel = ui.panels.Panel_person_info(self.m_auinotebook)
             elif label == '党费收缴':
                 self.currentPanel = ui.panels.Panel_df(self.m_auinotebook)
-            else:
+            elif label == '数据文件':
                 self.currentPanel = ui.panels.Panel_print(self.m_auinotebook)
+            else:
+                return
             self.m_auinotebook.AddPage(self.currentPanel, label, True, wx.NullBitmap)
         else:
             if index is not current:
                 self.m_auinotebook.SetSelection(index)
             self.currentPanel = self.m_auinotebook.GetPage(index)
-        self.currentPanel.showData(data)
+
+        if data:
+            self.currentPanel.showData(data)
+
+    def onItemSelect(self,event):
+        item = event.GetItem()
+        title = self.nodetree1.GetItemText(item)
+        print(title)
+        self.showPageWithData(title)
 
 
 class MyApp(wx.App):
