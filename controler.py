@@ -13,9 +13,14 @@ class Controller(object):
         self.dataIn = {}
         # 最近转出党员
         self.dataOut = {}
+        # 所有支部名称
+        self.choices = None
 
         # 数据初始化，从数据库读取
         self.initData()
+
+        if self.dataAll:
+            self.choices = sorted(self.dataAll.keys(),key = self.func_sort_choices)
 
     # 清空数据库
     def clear(self):
@@ -86,23 +91,27 @@ class Controller(object):
                     return member
         return None
 
-    def getAllData(self):
-        return self.dataAll
+    def getAllData(self,szzb=None):
+        if szzb:
+            if szzb in self.dataAll.keys():
+                return self.dataAll[szzb]
+        else:
+            members = []
+            for choice in self.choices:
+                members.extend(self.dataAll[choice])
+            return sorted(members, key=lambda m: m.getDYBH())
 
     def getInData(self):
-        return self.dataIn
+        members = []
+        for choice in self.dataIn.values():
+            members.extend(choice)
+        return sorted(members, key=lambda m: m.getDYBH())
 
     def getOutData(self):
-        return self.dataOut
-
-    def getAllDataBySSZB(self,szzb):
-        return {szzb: self.dataAll[szzb] }
-
-    def getInDataBySSZB(self,szzb):
-        return {szzb: self.dataIn[szzb] }
-
-    def getOutDataBySSZB(self,szzb):
-        return {szzb: self.dataOut[szzb] }
+        members = []
+        for choice in self.dataOut.values():
+            members.extend(choice)
+        return sorted(members, key=lambda m: m.getDYBH())
 
 
     # 从excel导入数据
@@ -126,3 +135,13 @@ class Controller(object):
         elif ext =='.xlsx':
             pass
 
+    def getChoices(self):
+        return self.choices
+
+    def func_sort_choices(self,label):
+        sorted_dict = {'一支部': 1, '二支部': 2, '三支部': 3, '四支部': 4, '五支部': 5, '六支部': 6, '七支部': 7, '八支部': 8 }
+        for key in sorted_dict.keys():
+            if key in label:
+                print(sorted_dict[key])
+                return sorted_dict[key]
+        return 100

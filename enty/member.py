@@ -56,9 +56,9 @@ class Member(object):
         self.zzrq = row[10]
         self.rylb = row[11]
         self.lxfs = row[13]
-        self.sjhm = row[12]
+        self.sjhm = str(row[12]).split('.')[0]
         self.jtdz = row[14]
-        # self.dybh = dybh
+        self.dybh = row[20]
         # self.dnzw = dnzw
         # self.dfjz = dfjz
         # self.gzdw = gzdw
@@ -76,7 +76,7 @@ class Member(object):
             lxfs = self.sjhm
         else:
             lxfs = self.lxfs
-        return [self.dybh,self.szzb,self.dylb,self.name,self.sex,self.sfzh,self.jtdz,lxfs,self.dfjz,self.dnzw]
+        return [self.dybh,self.szzb,self.dylb,self.name,self.sex,self.sfzh,self.jtdz,lxfs,self.dnzw]
 
     def getInfoPro(self):
         return None

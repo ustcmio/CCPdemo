@@ -4,33 +4,30 @@ import wx.dataview
 
 # 党员列表的标签页
 class Panel_info(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, choices):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(600, 600),
                           style=wx.TAB_TRAVERSAL)
         # 全局属性
         self.top = self.GetTopLevelParent()
-        self.controller = self.top.controller
+        self.controller = self.top.db
+        self.choices  = choices
 
         # 布局内容
         bSizer3 = wx.BoxSizer(wx.VERTICAL)
 
         # 类别选择
-        radioBoxChoices = [u"所有党员", u'近期转入', u'近期转出']
-        self.radioBox = wx.RadioBox(self, wx.ID_ANY, u"类别选择", wx.DefaultPosition, wx.DefaultSize, radioBoxChoices, 7,
+        radioBoxChoices = [u"所有党员", u'近期转入', u'近期转出','','']
+        print(self.choices)
+        radioBoxChoices.extend(self.choices)
+        self.radioBox = wx.RadioBox(self, wx.ID_ANY, u"类别选择", wx.DefaultPosition, wx.DefaultSize, radioBoxChoices, 5,
                                     wx.RA_SPECIFY_COLS)
         self.radioBox.SetSelection(0)
 
-        # 支部选择，预先定义8个支部，然后从数据中读取支部名称，再修改
-        radioBoxChoices2 = ['柏庄社区第一支部委员会', '柏庄社区第一支部委员会', '柏庄社区第一支部委员会',
-                            '柏庄社区第一支部委员会','柏庄社区第一支部委员会', '柏庄社区第一支部委员会',
-                            '柏庄社区第一支部委员会', '柏庄社区第一支部委员会']
-        self.radioBox2 = wx.RadioBox(self, wx.ID_ANY, u'支部选择', wx.DefaultPosition, wx.DefaultSize, radioBoxChoices2, 8,
-                                     wx.RA_SPECIFY_COLS)
-        for index in range(self.radioBox2.GetCount()):
-            self.radioBox2.ShowItem(index, False)
+        for index in range(3, 5):
+            self.radioBox.ShowItem(index, False)
 
         bSizer3.Add(self.radioBox, 0, wx.ALL | wx.EXPAND, 5)
-        bSizer3.Add(self.radioBox2, 0, wx.ALL | wx.EXPAND, 5)
+
 
         bSizer4 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -59,8 +56,8 @@ class Panel_info(wx.Panel):
         self.dvListCol_pid = self.dvList.AppendTextColumn(u"身份证号", width=150, align=wx.ALIGN_CENTER)
         self.dvListCol_addr = self.dvList.AppendTextColumn(u"住址", width=250, align=wx.ALIGN_CENTER)
         self.dvListCol_tel = self.dvList.AppendTextColumn(u"联系方式", width=100, align=wx.ALIGN_CENTER)
-        self.dvListCol_dfjz = self.dvList.AppendTextColumn(u"党费交至", width=70, align=wx.ALIGN_CENTER)
-        self.dvListCol_other = self.dvList.AppendTextColumn(u"备注", width=80, align=wx.ALIGN_CENTER)
+        # self.dvListCol_dfjz = self.dvList.AppendTextColumn(u"党费交至", width=70, align=wx.ALIGN_CENTER)
+        self.dvListCol_other = self.dvList.AppendTextColumn(u"备注", width=120, align=wx.ALIGN_CENTER)
 
         bSizer3.Add(self.dvList, 3, wx.ALL | wx.EXPAND, 5)
 
@@ -101,55 +98,36 @@ class Panel_info(wx.Panel):
         self.PopupMenu(self.i_menu, event.GetPosition())
 
     def showData(self, data):
-        self.dvList.DeleteAllItems()
-        if data:
-            choices = self.showRadioBox2(list(data.keys()))
-            members  = []
-            for choice in choices:
-                members.extend(data[choice])
-            sorted(members,key = lambda m : m.getDYBH())
-            for index in range(len(members)):
-                info = members[index].getInfo()
+        # print(data)
+        if data is not None:
+            self.dvList.DeleteAllItems()
+
+            for index in range(len(data)):
+                info = data[index].getInfo()
                 info.insert(0, index + 1)
-                self.dvList.AppendItem(info, int(members[index].dybh))
+                self.dvList.AppendItem(info, int(data[index].dybh))
+
+    def showDataInner(self,data):
+        pass
 
     def radioBoxChoice(self, event):
         box = event.GetEventObject()
         label = box.GetString(box.GetSelection())
-        print('radio',label)
+        # print('radio',label)
         if label == u'所有党员':
             self.showData(self.controller.getAllData())
         elif label == u'近期转入':
             self.showData(self.controller.getInData())
-            print(self.controller.getInData())
+            # print(self.controller.getInData())
         elif label == u'近期转出':
             self.showData(self.controller.getOutData())
-            print(self.controller.getOutData())
+            # print(self.controller.getOutData())
         else:
-            pass
-
-    def showRadioBox2(self,choices):
-        # print(choices)
-        choices.sort(key = self.func_sort_choices)
-        # print(choices)
-        for index in range(self.radioBox2.GetCount()):
-            self.radioBox2.ShowItem(index,False)
-        for index in range(len(choices)):
-            self.radioBox2.SetItemLabel(index, choices[index])
-            self.radioBox2.ShowItem(index,True)
-        return choices
-
-    def func_sort_choices(self,label):
-        sorted_dict = {'一支部': 1, '二支部': 2, '三支部': 3, '四支部': 4, '五支部': 5, '六支部': 6, '七支部': 7, '八支部': 8 }
-        for key in sorted_dict.keys():
-            if key in label:
-                print(sorted_dict[key])
-                return sorted_dict[key]
-        return 100
+            self.showData(self.controller.getAllData(label))
 
     def searchBtn(self, event):
         key = event.GetString()
-        data = self.c.search(key)
+        data = self.controller.search(key)
         self.showData(data)
 
     def menuItemOnclick(self, event):
@@ -159,16 +137,21 @@ class Panel_info(wx.Panel):
         member = self.controller.getMemberByDYBH(menu.GetTitle())
         # print(member)
         if id == self.i_menu_item1.GetId():
+            # for key in member.__dict__:
+            #     print(key,':',member.__dict__[key])
             self.top.showPageWithData('信息维护', member)
 
 
 # 个人信息维护标签页
 class Panel_person_info(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, choices):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(1000, 700),
                           style=wx.TAB_TRAVERSAL)
+        self.choices = choices
+        self.editwin = []
 
         self.Hide()
+
 
         bSizer1 = wx.BoxSizer(wx.VERTICAL)
 
@@ -375,7 +358,7 @@ class Panel_person_info(wx.Panel):
 
         gbSizer1.Add(self.m_staticText27, wx.GBPosition(14, 0), wx.GBSpan(1, 8), wx.ALL | wx.EXPAND, 5)
 
-        c_szzbChoices = [u"柏庄社区第一支部", u"柏庄社区第二支部", u"柏庄社区第三支部", u"柏庄社区第四支部"]
+        c_szzbChoices = self.choices
         self.c_szzb = wx.Choice(self, wx.ID_ANY, wx.DefaultPosition, wx.Size(-1, -1), c_szzbChoices, 0)
         self.c_szzb.SetSelection(0)
         gbSizer1.Add(self.c_szzb, wx.GBPosition(3, 3), wx.GBSpan(1, 1), wx.ALL, 5)
@@ -422,6 +405,8 @@ class Panel_person_info(wx.Panel):
 
         self.Show()
 
+        self.setUnedit()
+
     def __del__(self):
         pass
 
@@ -430,6 +415,30 @@ class Panel_person_info(wx.Panel):
             self.tC_name.SetValue(data.name)
             self.tc_pid.SetValue(data.sfzh)
             self.tc_dybh.SetValue(data.dybh)
+            self.tc_mz.SetValue(data.mz)
+            self.tc_study.SetValue(data.xl)
+            self.tc_type.SetValue(data.rylb)
+            self.c_sex.SetSelection(0) if data.sex =='男' else self.c_sex.SetSelection(1)
+            self.c_szzb.SetSelection(self.choices.index(data.szzb))
+            self.tc_jtzz.SetValue(data.jtdz)
+            self.tc_lxfs.SetValue(data.lxfs)
+            self.tc_sjhm.SetValue(data.sjhm)
+            self.tc_gzdw.SetValue(data.gzdw)
+            self.tc_rdrq.SetValue(data.rdrq)
+            self.tc_zzrq.SetValue(data.zzrq)
+            self.c_lx.SetSelection(0) if data.dylb == '预备党员' else self.c_lx.SetSelection(1)
+            if data.djzt == '不正常':
+                self.m_radioBtn3.SetValue(True)
+            if data.sfsl =='是':
+                self.m_radioBtn5.SetValue(True)
+            if data.sfld == '是':
+                self.m_radioBtn7.SetValue(True)
+
+    def setUnedit(self):
+        for win in self.GetChildren():
+            if isinstance(win,wx.TextCtrl) or isinstance(win, wx.Choice) or isinstance(win, wx.RadioButton):
+                self.editwin.append(win)
+                win.Disable()
 
 
 class Panel_df(wx.Panel):
