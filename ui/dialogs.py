@@ -1,6 +1,5 @@
 import wx
 
-
 class Dialog_out(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"转出管理", pos=wx.DefaultPosition, size=wx.Size(450, 270),
@@ -144,6 +143,44 @@ class Dialog_in(wx.Dialog):
         bSizer4.Add(bSizer6, 0, wx.EXPAND, 5)
 
         self.SetSizer(bSizer4)
+        self.Layout()
+
+        self.Centre(wx.BOTH)
+
+    def __del__(self):
+        pass
+
+
+class Dialog_ImportEXCEL(wx.Dialog):
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition,
+                           size=wx.Size(380, 160), style=wx.DEFAULT_DIALOG_STYLE)
+
+        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+
+        bSizer1 = wx.BoxSizer(wx.VERTICAL)
+
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"导入Excel数据", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText1.Wrap(-1)
+        self.m_staticText1.SetFont(wx.Font(15, 70, 90, 90, False, wx.EmptyString))
+
+        bSizer1.Add(self.m_staticText1, 0, wx.ALL, 5)
+
+        self.m_filePicker = wx.FilePickerCtrl(self, wx.ID_ANY, wx.EmptyString, u"Select a file", u"*.*",
+                                              wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE)
+        bSizer1.Add(self.m_filePicker, 0, wx.ALL | wx.EXPAND, 5)
+
+        bSizer2 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.btn_reset = wx.Button(self, wx.ID_ANY, u"重置", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer2.Add(self.btn_reset, 0, wx.ALL, 10)
+
+        self.btn_done = wx.Button(self, wx.ID_ANY, u"确认", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer2.Add(self.btn_done, 0, wx.ALL, 10)
+
+        bSizer1.Add(bSizer2, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+
+        self.SetSizer(bSizer1)
         self.Layout()
 
         self.Centre(wx.BOTH)

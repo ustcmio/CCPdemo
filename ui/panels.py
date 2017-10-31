@@ -7,33 +7,30 @@ class Panel_info(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(600, 600),
                           style=wx.TAB_TRAVERSAL)
+        # 全局属性
         self.top = self.GetTopLevelParent()
-        self.c = self.top.controller
-        self.layout()
+        self.controller = self.top.controller
 
-        # 绑定显示列表的右击菜单事件
-        self.Bind(wx.dataview.EVT_DATAVIEW_ITEM_CONTEXT_MENU, self.itemMenu)
-
-        # 绑定支部选择的radioBox
-        self.Bind(wx.EVT_RADIOBOX, self.radioBoxChoice, self.radioBox)
-
-        # 绑定搜索事件
-        self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.searchBtn, self.m_searchCtrl1)
-
-        # 绑定右击菜单点击事件
-        self.Bind(wx.EVT_MENU, self.menuItemOnclick)
-
-    def layout(self):
+        # 布局内容
         bSizer3 = wx.BoxSizer(wx.VERTICAL)
 
-        # 支部选择boxchoices
-        radioBoxChoices = [u"所有党员"]
-        radioBoxChoices.extend(sorted(self.c.dataAll.keys()))
-        radioBoxChoices.extend([u'近期转入', u'近期转出'])
-        self.radioBox = wx.RadioBox(self, wx.ID_ANY, u"支部选择", wx.DefaultPosition, wx.DefaultSize, radioBoxChoices, 7,
+        # 类别选择
+        radioBoxChoices = [u"所有党员", u'近期转入', u'近期转出']
+        self.radioBox = wx.RadioBox(self, wx.ID_ANY, u"类别选择", wx.DefaultPosition, wx.DefaultSize, radioBoxChoices, 7,
                                     wx.RA_SPECIFY_COLS)
         self.radioBox.SetSelection(0)
+
+        # 支部选择，预先定义8个支部，然后从数据中读取支部名称，再修改
+        radioBoxChoices2 = ['柏庄社区第一支部委员会', '柏庄社区第一支部委员会', '柏庄社区第一支部委员会',
+                            '柏庄社区第一支部委员会','柏庄社区第一支部委员会', '柏庄社区第一支部委员会',
+                            '柏庄社区第一支部委员会', '柏庄社区第一支部委员会']
+        self.radioBox2 = wx.RadioBox(self, wx.ID_ANY, u'支部选择', wx.DefaultPosition, wx.DefaultSize, radioBoxChoices2, 8,
+                                     wx.RA_SPECIFY_COLS)
+        for index in range(self.radioBox2.GetCount()):
+            self.radioBox2.ShowItem(index, False)
+
         bSizer3.Add(self.radioBox, 0, wx.ALL | wx.EXPAND, 5)
+        bSizer3.Add(self.radioBox2, 0, wx.ALL | wx.EXPAND, 5)
 
         bSizer4 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -55,14 +52,13 @@ class Panel_info(wx.Panel):
                                                    wx.dataview.DV_HORIZ_RULES | wx.dataview.DV_VERT_RULES)
         self.dvListCol_id = self.dvList.AppendTextColumn(u"序号", width=40, align=wx.ALIGN_CENTER)
         self.dvListCol_dybh = self.dvList.AppendTextColumn(u'党员编号', width=95, align=wx.ALIGN_CENTER)
-        self.dvListCol_party = self.dvList.AppendTextColumn(u"所在支部", width=60, align=wx.ALIGN_CENTER)
+        self.dvListCol_party = self.dvList.AppendTextColumn(u"所在支部", width=150, align=wx.ALIGN_CENTER)
         self.dvListCol_isprob = self.dvList.AppendTextColumn(u"预备/正式", width=70, align=wx.ALIGN_CENTER)
         self.dvListCol_name = self.dvList.AppendTextColumn(u"姓  名", width=50, align=wx.ALIGN_CENTER)
         self.dvListCol_sex = self.dvList.AppendTextColumn(u"性别", width=40, align=wx.ALIGN_CENTER)
         self.dvListCol_pid = self.dvList.AppendTextColumn(u"身份证号", width=150, align=wx.ALIGN_CENTER)
         self.dvListCol_addr = self.dvList.AppendTextColumn(u"住址", width=250, align=wx.ALIGN_CENTER)
-        self.dvListCol_phone = self.dvList.AppendTextColumn(u"座机", width=80, align=wx.ALIGN_CENTER)
-        self.dvListCol_tel = self.dvList.AppendTextColumn(u"手机", width=100, align=wx.ALIGN_CENTER)
+        self.dvListCol_tel = self.dvList.AppendTextColumn(u"联系方式", width=100, align=wx.ALIGN_CENTER)
         self.dvListCol_dfjz = self.dvList.AppendTextColumn(u"党费交至", width=70, align=wx.ALIGN_CENTER)
         self.dvListCol_other = self.dvList.AppendTextColumn(u"备注", width=80, align=wx.ALIGN_CENTER)
 
@@ -81,6 +77,19 @@ class Panel_info(wx.Panel):
         self.i_menu.Append(self.i_menu_item2)
         self.i_menu.Append(self.i_menu_item3)
 
+
+        # 绑定显示列表的右击菜单事件
+        self.Bind(wx.dataview.EVT_DATAVIEW_ITEM_CONTEXT_MENU, self.itemMenu)
+
+        # 绑定支部选择的radioBox
+        self.Bind(wx.EVT_RADIOBOX, self.radioBoxChoice, self.radioBox)
+
+        # 绑定搜索事件
+        self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.searchBtn, self.m_searchCtrl1)
+
+        # 绑定右击菜单点击事件
+        self.Bind(wx.EVT_MENU, self.menuItemOnclick)
+
     def __del__(self):
         pass
 
@@ -94,23 +103,49 @@ class Panel_info(wx.Panel):
     def showData(self, data):
         self.dvList.DeleteAllItems()
         if data:
-            for index in range(len(data)):
-                info = data[index].getInfo()
+            choices = self.showRadioBox2(list(data.keys()))
+            members  = []
+            for choice in choices:
+                members.extend(data[choice])
+            sorted(members,key = lambda m : m.getDYBH())
+            for index in range(len(members)):
+                info = members[index].getInfo()
                 info.insert(0, index + 1)
-                self.dvList.AppendItem(info, int(data[index].dybh))
+                self.dvList.AppendItem(info, int(members[index].dybh))
 
     def radioBoxChoice(self, event):
         box = event.GetEventObject()
         label = box.GetString(box.GetSelection())
-        print(label)
+        print('radio',label)
         if label == u'所有党员':
-            self.showData(self.c.getAllData())
+            self.showData(self.controller.getAllData())
         elif label == u'近期转入':
-            self.showData(self.c.dataIn)
+            self.showData(self.controller.getInData())
+            print(self.controller.getInData())
         elif label == u'近期转出':
-            self.showData(self.c.dataOut)
+            self.showData(self.controller.getOutData())
+            print(self.controller.getOutData())
         else:
-            self.showData(self.c.getData(label))
+            pass
+
+    def showRadioBox2(self,choices):
+        # print(choices)
+        choices.sort(key = self.func_sort_choices)
+        # print(choices)
+        for index in range(self.radioBox2.GetCount()):
+            self.radioBox2.ShowItem(index,False)
+        for index in range(len(choices)):
+            self.radioBox2.SetItemLabel(index, choices[index])
+            self.radioBox2.ShowItem(index,True)
+        return choices
+
+    def func_sort_choices(self,label):
+        sorted_dict = {'一支部': 1, '二支部': 2, '三支部': 3, '四支部': 4, '五支部': 5, '六支部': 6, '七支部': 7, '八支部': 8 }
+        for key in sorted_dict.keys():
+            if key in label:
+                print(sorted_dict[key])
+                return sorted_dict[key]
+        return 100
 
     def searchBtn(self, event):
         key = event.GetString()
@@ -121,7 +156,7 @@ class Panel_info(wx.Panel):
         id = event.GetId()
         menu = event.GetEventObject()
         # print(id, menu.GetTitle())
-        member = self.c.getMemberByDYBH(menu.GetTitle())
+        member = self.controller.getMemberByDYBH(menu.GetTitle())
         # print(member)
         if id == self.i_menu_item1.GetId():
             self.top.showPageWithData('信息维护', member)

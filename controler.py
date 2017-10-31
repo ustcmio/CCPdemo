@@ -1,26 +1,38 @@
 import os
 import pickle
 from datetime import datetime
+import xlrd
 from enty.member import Member
 
 class Controller(object):
     def __init__(self):
         self.datafilename = 'database.pkl'
-        self.data = []
+        # 保存所有党员，以支部为key
         self.dataAll = {}
-        self.dataIn = []
-        self.dataOut = []
-        self.initData()
-        if self.data:
-            self.dataAll, self.dataIn, self.dataOut = self.data
-        pass
+        # 保存最近转入党员
+        self.dataIn = {}
+        # 最近转出党员
+        self.dataOut = {}
 
-    # 初始化数据，从默认数据文件读取数据
+        # 数据初始化，从数据库读取
+        self.initData()
+
+    # 清空数据库
+    def clear(self):
+        self.dataAll.clear()
+        self.dataIn.clear()
+        self.dataOut.clear()
+
+
+    # 初始化数据，从默认数据文件读取数据，如果默认数据库不存在提示从备份文件读取或者导入Excel
     def initData(self):
         if os.path.exists(self.datafilename):
             with open(self.datafilename, 'rb') as f:
-                self.data = pickle.load(f)
+                data = pickle.load(f)
+                if data:
+                    self.dataAll, self.dataIn, self.dataOut = data
         else:
+            # 提示从备份文件读取或者导入Excel
             print("No database.pkl")
 
     # 保存到数据文件
@@ -42,13 +54,16 @@ class Controller(object):
     def add(self, member):
         if member.szzb not in self.dataAll.keys():
             self.dataAll[member.szzb] = []
+            self.dataIn[member.szzb] = []
         self.dataAll[member.szzb].append(member)
-        self.dataIn.append(member)
+        self.dataIn[member.szzb].append(member)
 
     # 删除党员
     def dele(self, member):
         self.dataAll[member.szzb].pop(member)
-        self.dataOut.append(member)
+        if member.szzb not in self.dataOut.keys():
+            self.dataOut[member.szzb] = []
+        self.dataOut[member.szzb].append(member)
 
     # 修改党员
     def change(self, old, new):
@@ -71,29 +86,43 @@ class Controller(object):
                     return member
         return None
 
-    def getData(self, szzb):
-        return sorted(self.dataAll[szzb],key=self.func)
-
     def getAllData(self):
-        all = []
-        for members in self.dataAll.values():
-            all.extend(members)
-        all.sort(key = self.func)
-        return all
+        return self.dataAll
+
+    def getInData(self):
+        return self.dataIn
+
+    def getOutData(self):
+        return self.dataOut
+
+    def getAllDataBySSZB(self,szzb):
+        return {szzb: self.dataAll[szzb] }
+
+    def getInDataBySSZB(self,szzb):
+        return {szzb: self.dataIn[szzb] }
+
+    def getOutDataBySSZB(self,szzb):
+        return {szzb: self.dataOut[szzb] }
 
 
-    def func(self,member):
-        return member.dybh
+    # 从excel导入数据
+    def dataFromExcel(self, filename):
+        self.clear()
+        ext = os.path.splitext(filename)[1]
+        if ext == '.xls':
+            workbook = xlrd.open_workbook(filename)
+            sheet = workbook.sheet_by_index(0)
+            # row = sheet.row_values(4)
+            # print(row)
 
+            for index in range(4,sheet.nrows):
+                row = sheet.row_values(index)
+                if row[3] and len(row[3])==18:
+                    # print(row[0])
+                    m = Member()
+                    m.save(row)
+                    self.add(m)
+            pass
+        elif ext =='.xlsx':
+            pass
 
-if __name__ == '__main__':
-    c = Controller()
-    # c.add(Member('张三','111111111111111111','042030338',szzb='四支部'))
-    # c.add(Member('李四', '111111111111111112', '042030339', szzb='二支部'))
-    # c.add(Member('王五', '111111111111111113', '042030340', szzb='一支部'))
-    # c.add(Member('赵六', '111111111111111114', '042030341', szzb='三支部'))
-    # c.add(Member('陈七', '111111111111111115', '042030342', szzb='一支部'))
-    # c.add(Member('朱六', '111111111111111116', '042030343', szzb='二支部'))
-    # c.saveToDatabase()
-    for member in c.getData('三支部'):
-        print(member.name,member.szzb,member.dybh,member.sfzh)
