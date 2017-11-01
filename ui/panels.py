@@ -192,7 +192,7 @@ class Panel_person_info(wx.Panel):
                      wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
 
         # 姓名
-        self.tC_name = wx.TextCtrl(self, wx.ID_ANY, u"张三三三", wx.DefaultPosition, wx.Size(-1, -1), 0)
+        self.tC_name = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(-1, -1), 0)
         gbSizer1.Add(self.tC_name, wx.GBPosition(1, 1), wx.GBSpan(1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         self.m_staticText3 = wx.StaticText(self, wx.ID_ANY, u"姓别：", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -245,7 +245,7 @@ class Panel_person_info(wx.Panel):
         gbSizer1.Add(self.m_staticText8, wx.GBPosition(3, 0), wx.GBSpan(1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         # 党员编号
-        self.tc_dybh = wx.TextCtrl(self, wx.ID_ANY, u"042300000", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.tc_dybh = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         gbSizer1.Add(self.tc_dybh, wx.GBPosition(3, 1), wx.GBSpan(1, 1), wx.ALL, 5)
 
         self.m_staticText9 = wx.StaticText(self, wx.ID_ANY, u"类别：", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -265,14 +265,14 @@ class Panel_person_info(wx.Panel):
         self.m_staticText17.Wrap(-1)
         gbSizer1.Add(self.m_staticText17, wx.GBPosition(6, 0), wx.GBSpan(1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
-        self.tc_lxfs = wx.TextCtrl(self, wx.ID_ANY, u"051088888888", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.tc_lxfs = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         gbSizer1.Add(self.tc_lxfs, wx.GBPosition(6, 1), wx.GBSpan(1, 1), wx.ALL, 5)
 
         self.m_staticText18 = wx.StaticText(self, wx.ID_ANY, u"手机号码：", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText18.Wrap(-1)
         gbSizer1.Add(self.m_staticText18, wx.GBPosition(6, 2), wx.GBSpan(1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
-        self.tc_sjhm = wx.TextCtrl(self, wx.ID_ANY, u"13000000000", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.tc_sjhm = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         gbSizer1.Add(self.tc_sjhm, wx.GBPosition(6, 3), wx.GBSpan(1, 1), wx.ALL, 5)
 
         self.m_staticText19 = wx.StaticText(self, wx.ID_ANY, u"工作单位：", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -405,7 +405,13 @@ class Panel_person_info(wx.Panel):
 
         self.Show()
 
-        self.setUnedit()
+        # 调用绑定函数
+        self.bindEVT()
+
+    # 绑定函数
+    def bindEVT(self):
+        self.Bind(wx.EVT_BUTTON, self.onButtonClick)
+        pass
 
     def __del__(self):
         pass
@@ -433,12 +439,49 @@ class Panel_person_info(wx.Panel):
                 self.m_radioBtn5.SetValue(True)
             if data.sfld == '是':
                 self.m_radioBtn7.SetValue(True)
+            self.setUnedit()
+
 
     def setUnedit(self):
         for win in self.GetChildren():
             if isinstance(win,wx.TextCtrl) or isinstance(win, wx.Choice) or isinstance(win, wx.RadioButton):
                 self.editwin.append(win)
                 win.Disable()
+        self.btn_p_save.Disable()
+
+    def setEnedit(self):
+        for win in self.editwin:
+            win.Enable()
+        self.btn_p_save.Enable()
+
+    # 事件处理函数
+    # 按键点击事件处理函数
+    def onButtonClick(self,event):
+        id = event.GetId()
+        if id == self.btn_p_modify.GetId():
+            self.setEnedit()
+            self.btn_p_modify.Disable()
+            self.btn_p_in.Disable()
+            self.btn_p_out.Disable()
+        elif id == self.btn_p_save.GetId():
+            member = self.createMember()
+            if member:
+                self.setUnedit()
+                self.btn_p_modify.Enable()
+                self.btn_p_in.Enable()
+                self.btn_p_out.Enable()
+            else:
+                wx.MessageDialog(self,'姓名、身份证号、党员编号均不能为空！').ShowModal()
+
+    def createMember(self):
+        name = self.tC_name.GetValue()
+        sfzh = self.tc_pid.GetValue()
+        dybh = self.tc_dybh.GetValue()
+        print(name,sfzh,dybh)
+        if name and sfzh and dybh:
+            return True
+        else:
+            return None
 
 
 class Panel_df(wx.Panel):
