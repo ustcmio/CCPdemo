@@ -9,12 +9,10 @@ class Controller(object):
         self.datafilename = 'database.pkl'
         # 保存所有党员，以支部为key
         self.dataAll = {}
-        # 保存最近转入党员
-        self.dataIn = {}
         # 最近转出党员
         self.dataOut = {}
         # 所有支部名称
-        self.choices = None
+        self.choices = []
 
         # 数据初始化，从数据库读取
         self.initData()
@@ -25,7 +23,6 @@ class Controller(object):
     # 清空数据库
     def clear(self):
         self.dataAll.clear()
-        self.dataIn.clear()
         self.dataOut.clear()
 
 
@@ -35,7 +32,7 @@ class Controller(object):
             with open(self.datafilename, 'rb') as f:
                 data = pickle.load(f)
                 if data:
-                    self.dataAll, self.dataIn, self.dataOut = data
+                    self.dataAll, self.dataOut = data
         else:
             # 提示从备份文件读取或者导入Excel
             print("No database.pkl")
@@ -43,7 +40,7 @@ class Controller(object):
     # 保存到数据文件
     def savaData(self, filename):
         with open(filename, 'wb') as f:
-             pickle.dump([self.dataAll,self.dataIn,self.dataOut],f)
+             pickle.dump([self.dataAll,self.dataOut],f)
 
     # 默认自动保存到数据文件
     def saveToDatabase(self):
@@ -59,9 +56,7 @@ class Controller(object):
     def add(self, member):
         if member.szzb not in self.dataAll.keys():
             self.dataAll[member.szzb] = []
-            self.dataIn[member.szzb] = []
         self.dataAll[member.szzb].append(member)
-        self.dataIn[member.szzb].append(member)
 
     # 删除党员
     def dele(self, member):
@@ -83,29 +78,26 @@ class Controller(object):
                     result.append(member)
         return result
 
-    # 由党员编号获取党员
-    def getMemberByDYBH(self, dybh):
+    # 由身份证号编号获取党员
+    def getMemberByPID(self, pid):
         for members in self.dataAll.values():
             for member in members:
-                if str(int(member.dybh)) == dybh:
+                if member.sfzh == pid:
                     return member
         return None
 
     def getAllData(self,szzb=None):
-        if szzb:
-            if szzb in self.dataAll.keys():
-                return self.dataAll[szzb]
+        if self.dataAll:
+            if szzb:
+                if szzb in self.dataAll.keys():
+                    return self.dataAll[szzb]
+            else:
+                members = []
+                for choice in self.choices:
+                    members.extend(self.dataAll[choice])
+                return sorted(members, key=lambda m: m.getDYBH())
         else:
-            members = []
-            for choice in self.choices:
-                members.extend(self.dataAll[choice])
-            return sorted(members, key=lambda m: m.getDYBH())
-
-    def getInData(self):
-        members = []
-        for choice in self.dataIn.values():
-            members.extend(choice)
-        return sorted(members, key=lambda m: m.getDYBH())
+            return None
 
     def getOutData(self):
         members = []
@@ -131,11 +123,12 @@ class Controller(object):
                     m = Member()
                     m.save(row)
                     self.add(m)
-            pass
         elif ext =='.xlsx':
             pass
 
     def getChoices(self):
+        if self.dataAll:
+            self.choices = sorted(self.dataAll.keys(),key = self.func_sort_choices)
         return self.choices
 
     def func_sort_choices(self,label):
@@ -145,3 +138,9 @@ class Controller(object):
                 print(sorted_dict[key])
                 return sorted_dict[key]
         return 100
+
+    def isEmpty(self):
+        if self.dataAll:
+            return True
+        else:
+            return False

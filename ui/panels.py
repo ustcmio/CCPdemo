@@ -1,30 +1,24 @@
 import wx
 import wx.dataview
-
+import datetime
 
 # 党员列表的标签页
 class Panel_info(wx.Panel):
-    def __init__(self, parent, choices):
+    def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(600, 600),
                           style=wx.TAB_TRAVERSAL)
         # 全局属性
         self.top = self.GetTopLevelParent()
         self.controller = self.top.db
-        self.choices  = choices
 
         # 布局内容
         bSizer3 = wx.BoxSizer(wx.VERTICAL)
 
         # 类别选择
-        radioBoxChoices = [u"所有党员", u'近期转入', u'近期转出','','']
-        print(self.choices)
-        radioBoxChoices.extend(self.choices)
-        self.radioBox = wx.RadioBox(self, wx.ID_ANY, u"类别选择", wx.DefaultPosition, wx.DefaultSize, radioBoxChoices, 5,
+        radioBoxChoices = [u"所有党员", u'近期转入', u'近期转出']
+        self.radioBox = wx.RadioBox(self, wx.ID_ANY, u"类别选择", wx.DefaultPosition, wx.DefaultSize, radioBoxChoices, 3,
                                     wx.RA_SPECIFY_COLS)
         self.radioBox.SetSelection(0)
-
-        for index in range(3, 5):
-            self.radioBox.ShowItem(index, False)
 
         bSizer3.Add(self.radioBox, 0, wx.ALL | wx.EXPAND, 5)
 
@@ -39,8 +33,8 @@ class Panel_info(wx.Panel):
         self.m_searchCtrl1.SetDescriptiveText(u'输入姓名或身份证号')
 
         # 刷新Button
-        self.btn_reflash = wx.Button(self, wx.ID_ANY, u"刷  新", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer4.Add(self.btn_reflash, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.btn_addIn = wx.Button(self, wx.ID_ANY, u"转  入", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer4.Add(self.btn_addIn, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         bSizer3.Add(bSizer4, 0, wx.EXPAND, 5)
 
@@ -65,18 +59,16 @@ class Panel_info(wx.Panel):
         self.Layout()
 
         # 右击菜单
-        self.i_menu = wx.Menu()
-        self.i_menu_item1 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"详情", wx.EmptyString, wx.ITEM_NORMAL)
-        self.i_menu_item2 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"信息维护", wx.EmptyString, wx.ITEM_NORMAL)
-        self.i_menu_item3 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"关系转出", wx.EmptyString, wx.ITEM_NORMAL)
-
-        self.i_menu.Append(self.i_menu_item1)
-        self.i_menu.Append(self.i_menu_item2)
-        self.i_menu.Append(self.i_menu_item3)
+        # self.i_menu = wx.Menu()
+        # self.i_menu_item1 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"详情", wx.EmptyString, wx.ITEM_NORMAL)
+        # self.i_menu_item3 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"关系转出", wx.EmptyString, wx.ITEM_NORMAL)
+        #
+        # self.i_menu.Append(self.i_menu_item1)
+        # self.i_menu.Append(self.i_menu_item3)
 
 
-        # 绑定显示列表的右击菜单事件
-        self.Bind(wx.dataview.EVT_DATAVIEW_ITEM_CONTEXT_MENU, self.itemMenu)
+        # 绑定显示列表的双击事件
+        self.Bind(wx.dataview.EVT_DATAVIEW_ITEM_ACTIVATED, self.doubleclick)
 
         # 绑定支部选择的radioBox
         self.Bind(wx.EVT_RADIOBOX, self.radioBoxChoice, self.radioBox)
@@ -84,18 +76,26 @@ class Panel_info(wx.Panel):
         # 绑定搜索事件
         self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.searchBtn, self.m_searchCtrl1)
 
-        # 绑定右击菜单点击事件
-        self.Bind(wx.EVT_MENU, self.menuItemOnclick)
+        # # 绑定右击菜单点击事件
+        # self.Bind(wx.EVT_MENU, self.menuItemOnclick)
 
     def __del__(self):
         pass
 
-    def itemMenu(self, event):
-        item = event.GetItem()
-        if item:
-            key = self.dvList.GetItemData(event.GetItem())
-            self.i_menu.SetTitle(str(key))
-        self.PopupMenu(self.i_menu, event.GetPosition())
+    # def itemMenu(self, event):
+    #     item = event.GetItem()
+    #     if item:
+    #         key = self.dvList.GetItemData(event.GetItem())
+    #         self.i_menu.SetTitle(str(key))
+    #     self.PopupMenu(self.i_menu, event.GetPosition())
+
+    def doubleclick(self, event):
+        row = self.dvList.ItemToRow(event.GetItem())
+        pid = self.dvList.GetTextValue(row,6)
+        member = self.controller.getMemberByPID(pid)
+        if member:
+            self.top.showPageWithData('信息维护', member)
+
 
     def showData(self, data):
         # print(data)
@@ -130,16 +130,17 @@ class Panel_info(wx.Panel):
         data = self.controller.search(key)
         self.showData(data)
 
-    def menuItemOnclick(self, event):
-        id = event.GetId()
-        menu = event.GetEventObject()
-        # print(id, menu.GetTitle())
-        member = self.controller.getMemberByDYBH(menu.GetTitle())
-        # print(member)
-        if id == self.i_menu_item1.GetId():
-            # for key in member.__dict__:
-            #     print(key,':',member.__dict__[key])
-            self.top.showPageWithData('信息维护', member)
+    # def menuItemOnclick(self, event):
+    #     id = event.GetId()
+    #     if id == -3:
+    #         return
+    #     menu = event.GetEventObject()
+    #     member = self.controller.getMemberByDYBH(menu.GetTitle())
+    #     # print(member)
+    #     if id == self.i_menu_item1.GetId():
+    #         # for key in member.__dict__:
+    #         #     print(key,':',member.__dict__[key])
+    #         self.top.showPageWithData('信息维护', member)
 
 
 # 个人信息维护标签页
@@ -170,8 +171,8 @@ class Panel_person_info(wx.Panel):
         bSizer2.Add(self.btn_p_out, 0, wx.TOP | wx.BOTTOM | wx.RIGHT, 3)
 
         # 转入button
-        self.btn_p_in = wx.Button(self, wx.ID_ANY, u"转入", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer2.Add(self.btn_p_in, 0, wx.TOP | wx.BOTTOM | wx.RIGHT, 3)
+        # self.btn_p_in = wx.Button(self, wx.ID_ANY, u"转入", wx.DefaultPosition, wx.DefaultSize, 0)
+        # bSizer2.Add(self.btn_p_in, 0, wx.TOP | wx.BOTTOM | wx.RIGHT, 3)
 
         bSizer1.Add(bSizer2, 0, wx.EXPAND, 5)
 
@@ -430,8 +431,10 @@ class Panel_person_info(wx.Panel):
             self.tc_lxfs.SetValue(data.lxfs)
             self.tc_sjhm.SetValue(data.sjhm)
             self.tc_gzdw.SetValue(data.gzdw)
-            self.tc_rdrq.SetValue(data.rdrq)
-            self.tc_zzrq.SetValue(data.zzrq)
+            if data.rdrq:
+                self.tc_rdrq.SetValue(datetime.datetime.strftime(data.rdrq,'%Y/%m/%d'))
+            if data.zzrq:
+                self.tc_zzrq.SetValue(datetime.datetime.strftime(data.zzrq,'%Y/%m/%d'))
             self.c_lx.SetSelection(0) if data.dylb == '预备党员' else self.c_lx.SetSelection(1)
             if data.djzt == '不正常':
                 self.m_radioBtn3.SetValue(True)
@@ -461,14 +464,12 @@ class Panel_person_info(wx.Panel):
         if id == self.btn_p_modify.GetId():
             self.setEnedit()
             self.btn_p_modify.Disable()
-            self.btn_p_in.Disable()
             self.btn_p_out.Disable()
         elif id == self.btn_p_save.GetId():
             member = self.createMember()
             if member:
                 self.setUnedit()
                 self.btn_p_modify.Enable()
-                self.btn_p_in.Enable()
                 self.btn_p_out.Enable()
             else:
                 wx.MessageDialog(self,'姓名、身份证号、党员编号均不能为空！').ShowModal()
@@ -477,7 +478,21 @@ class Panel_person_info(wx.Panel):
         name = self.tC_name.GetValue()
         sfzh = self.tc_pid.GetValue()
         dybh = self.tc_dybh.GetValue()
-        print(name,sfzh,dybh)
+        mz = self.tc_mz.GetValue()
+        xl = self.tc_study.GetValue()
+        rylb = self.tc_type.GetValue()
+        sex =  self.c_sex.GetString(self.c_sex.GetSelection())
+        szzb = self.c_szzb.GetString(self.c_szzb.GetSelection())
+        jtdz = self.tc_jtzz.GetValue()
+        lxfs = self.tc_lxfs.GetValue()
+        sjhm = self.tc_sjhm.GetValue()
+        gzdw = self.tc_gzdw.GetValue()
+        dnzw = self.c_dnzw.GetString(self.c_dnzw.GetSelection())
+        dylb = self.c_lx.GetString(self.c_lx.GetSelection())
+        dfjz = datetime.datetime.strptime(self.tc_dfjz.GetValue(), '%Y/%m/%d') if self.tc_rdrq else ''
+        rdrq = datetime.datetime.strptime(self.tc_rdrq.GetValue(), '%Y/%m/%d') if self.tc_rdrq else ''
+        zzrq = datetime.datetime.strptime(self.tc_zzrq.GetValue(), '%Y/%m/%d') if self.tc_rdrq else ''
+
         if name and sfzh and dybh:
             return True
         else:
