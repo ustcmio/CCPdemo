@@ -1,6 +1,7 @@
 import wx
 import wx.dataview
 import datetime
+import ui.dialogs
 
 # 党员列表的标签页
 class Panel_info(wx.Panel):
@@ -58,15 +59,6 @@ class Panel_info(wx.Panel):
         self.SetSizer(bSizer3)
         self.Layout()
 
-        # 右击菜单
-        # self.i_menu = wx.Menu()
-        # self.i_menu_item1 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"详情", wx.EmptyString, wx.ITEM_NORMAL)
-        # self.i_menu_item3 = wx.MenuItem(self.i_menu, wx.ID_ANY, u"关系转出", wx.EmptyString, wx.ITEM_NORMAL)
-        #
-        # self.i_menu.Append(self.i_menu_item1)
-        # self.i_menu.Append(self.i_menu_item3)
-
-
         # 绑定显示列表的双击事件
         self.Bind(wx.dataview.EVT_DATAVIEW_ITEM_ACTIVATED, self.doubleclick)
 
@@ -76,18 +68,11 @@ class Panel_info(wx.Panel):
         # 绑定搜索事件
         self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.searchBtn, self.m_searchCtrl1)
 
-        # # 绑定右击菜单点击事件
-        # self.Bind(wx.EVT_MENU, self.menuItemOnclick)
+        # 绑定右击菜单点击事件
+        self.Bind(wx.EVT_BUTTON, self.addInOnclick)
 
     def __del__(self):
         pass
-
-    # def itemMenu(self, event):
-    #     item = event.GetItem()
-    #     if item:
-    #         key = self.dvList.GetItemData(event.GetItem())
-    #         self.i_menu.SetTitle(str(key))
-    #     self.PopupMenu(self.i_menu, event.GetPosition())
 
     def doubleclick(self, event):
         row = self.dvList.ItemToRow(event.GetItem())
@@ -98,7 +83,6 @@ class Panel_info(wx.Panel):
 
 
     def showData(self, data):
-        # print(data)
         if data is not None:
             self.dvList.DeleteAllItems()
 
@@ -113,7 +97,7 @@ class Panel_info(wx.Panel):
     def radioBoxChoice(self, event):
         box = event.GetEventObject()
         label = box.GetString(box.GetSelection())
-        # print('radio',label)
+
         if label == u'所有党员':
             self.showData(self.controller.getAllData())
         elif label == u'近期转入':
@@ -130,17 +114,9 @@ class Panel_info(wx.Panel):
         data = self.controller.search(key)
         self.showData(data)
 
-    # def menuItemOnclick(self, event):
-    #     id = event.GetId()
-    #     if id == -3:
-    #         return
-    #     menu = event.GetEventObject()
-    #     member = self.controller.getMemberByDYBH(menu.GetTitle())
-    #     # print(member)
-    #     if id == self.i_menu_item1.GetId():
-    #         # for key in member.__dict__:
-    #         #     print(key,':',member.__dict__[key])
-    #         self.top.showPageWithData('信息维护', member)
+    def addInOnclick(self, event):
+        dialog = ui.dialogs.Dialog_in(self)
+        dialog.ShowModal()
 
 
 # 个人信息维护标签页

@@ -74,7 +74,7 @@ class Controller(object):
         result = []
         for members in self.dataAll.values():
             for member in members:
-                if member.name == key or member.sfzh == key :
+                if key in member.name or member.sfzh == key or key in member.jtdz :
                     result.append(member)
         return result
 
@@ -135,7 +135,7 @@ class Controller(object):
         sorted_dict = {'一支部': 1, '二支部': 2, '三支部': 3, '四支部': 4, '五支部': 5, '六支部': 6, '七支部': 7, '八支部': 8 }
         for key in sorted_dict.keys():
             if key in label:
-                print(sorted_dict[key])
+                # print(sorted_dict[key])
                 return sorted_dict[key]
         return 100
 
@@ -144,3 +144,11 @@ class Controller(object):
             return True
         else:
             return False
+
+    def getInData(self):
+        result = []
+        for members in self.dataAll.values():
+            for member in members:
+                if member.history:
+                    result.append(member)
+        return result

@@ -19,7 +19,7 @@ class MainScreen(wx.Frame):
 
         # 1、左侧树形结构,wx.TR_HIDE_ROOT：隐藏根节点
         self.leftnodetree = wx.TreeCtrl(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(200, -1),
-                                     style=wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT | wx.TR_NO_LINES | wx.TR_FULL_ROW_HIGHLIGHT ,
+                                     style=wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT | wx.TR_NO_LINES | wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_NO_BUTTONS,
                                      validator=wx.DefaultValidator, name=wx.TreeCtrlNameStr)
 
         node_root = self.leftnodetree.AddRoot(u'根目录')
@@ -56,7 +56,7 @@ class MainScreen(wx.Frame):
         # 当前面板
         self.currentPanel = None
         # 默认显示党员信息
-        self.showPageWithData(u'党员列表', self.db.getAllData())
+        # self.showPageWithData(u'党员列表', self.db.getAllData())
 
         # 三、绑定各类事件
         # 树形菜单事件绑定
@@ -79,15 +79,13 @@ class MainScreen(wx.Frame):
 
     def showPageWithData(self, label, data=None):
 
+
         current = self.m_auinotebook.GetSelection()
         index = self.getPageIndex(label)
 
-        # print(self.db.getAllData())
-        print(index, current)
         if index is None:
             if label == '党员列表':
                 self.currentPanel = ui.panels.Panel_info(self.m_auinotebook)
-                self.currentPanel.showData(self.db.getAllData())
             elif label == '信息维护':
                 self.currentPanel = ui.panels.Panel_person_info(self.m_auinotebook, self.db.getChoices())
             elif label == '党费收缴':
@@ -108,12 +106,34 @@ class MainScreen(wx.Frame):
     def onItemSelect(self,event):
         item = event.GetItem()
         title = self.leftnodetree.GetItemText(item)
-        if title == '导入Excel':
+
+        # 显示数据库为空的提示
+        msgdlg = None
+        if title=='党员列表' and not self.db.getAllData():
+            msgdlg = wx.MessageDialog(self,"数据库为空！",style=wx.OK | wx.CANCEL)
+
+        if title == u'党员列表':
+            self.showPageWithData(title,data=self.db.getAllData())
+        elif title in self.db.getChoices():
+            self.showPageWithData(u'党员列表', data = self.db.getAllData(szzb=title))
+        elif title == u'信息维护':
+            self.showPageWithData(title)
+        elif title == u'转入转出':
+            pass
+        elif title == u'党费缴至':
+            self.showPageWithData(title)
+        elif title == u'数据备份':
+            pass
+        elif title == '导入Excel':
             self.import_Excel()
         elif title == '导出Excel':
             pass
         else:
-            self.showPageWithData(title)
+            return
+
+        # 提示数据库为空
+        if msgdlg:
+            msgdlg.ShowModal()
 
     def onPageClosed(self,event):
         # print('close')
@@ -126,13 +146,8 @@ class MainScreen(wx.Frame):
             dlg = wx.FileDialog(self, '选择Excel文件', defaultDir='.', wildcard=filesFilter, style=wx.FD_OPEN)
             if dlg.ShowModal() == wx.ID_OK:
                 self.db.dataFromExcel(dlg.GetPath())
-
-
         self.setParty()
         self.currentPanel.showData(self.db.getAllData())
-        # self.m_auinotebook.DeleteAllPages()
-        # self.showPageWithData(u'党员列表')
-        # print(self.db.getAllData())
 
     def setParty(self):
         choices = self.db.getChoices()
